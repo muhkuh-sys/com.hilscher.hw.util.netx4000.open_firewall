@@ -1,0 +1,10 @@
+<!-- open firewalls at netX 4000. 
+${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}.${PROJECT_VERSION_MICRO}.${PROJECT_VERSION_VCS} -->
+<Data>
+	<Hex address="${%LOAD_ADDRESS%}">
+${%PROGRAM_DATA%}
+	</Hex>
+</Data>
+<Execute>
+	<Address>${%EXECUTION_ADDRESS%}</Address>
+</Execute>

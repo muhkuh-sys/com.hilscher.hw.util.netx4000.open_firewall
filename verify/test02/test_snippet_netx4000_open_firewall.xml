@@ -1,0 +1,10 @@
+<?xml version="1.0"?>
+<HBootImage type="REGULAR">
+
+  <!-- Just open all firewalls -->
+  <Chunks>
+
+    <Snip artifact="open_firewall" group="com.hilscher.hw.util.netx4000" version="1.0.1">
+    </Snip>
+  </Chunks>
+</HBootImage>
