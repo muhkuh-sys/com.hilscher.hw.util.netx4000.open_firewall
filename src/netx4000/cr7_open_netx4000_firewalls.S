@@ -1,10 +1,8 @@
 #include "netx_io_areas.S"
 
 	.section .init_code, "ax"
+	.text
 	.arm
-
-	.extern test_main
-	.extern stack_top
 
 	.global start
 

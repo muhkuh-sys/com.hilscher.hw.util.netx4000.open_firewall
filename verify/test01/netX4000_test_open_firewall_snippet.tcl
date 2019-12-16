@@ -1,6 +1,6 @@
-# \file netX4000_test_read_rotary_snippet.tcl 
-# \brief Script to test the functionality of the  netX4000 read rotaryswitch snippet
-# \author NW
+# \file netX4000_test_open_firewall_snippet.tcl
+# \brief Script to test the functionality of the  netX4000 open_firewall snippet
+# \author GDo
 
 proc read_data32 {addr} {
   set value(0) 0
@@ -62,77 +62,131 @@ proc netx4000_enable_tcm {} {
   mdw 0
 }
 
+
+# read and validate a 32bit value
+proc validate_32bit {addr_string addr ref mask} {
+
+  # be optimistic
+  set RESULT 0
+
+  # Read back modified register values
+  set rd_value [ format "0x%08x" [read_data32 $addr]]
+
+  echo ""
+  echo "########"
+  echo "Check the modified asic_ctrl registers"
+  echo "Register $addr_string (addr: $addr)"
+  puts [ format "expected: %08x" $ref ]
+  puts [ format "masked:   %08x" $mask ]
+  puts [ format "actual:   %08x" $rd_value ]
+
+	  if {$ref != [expr $rd_value & $mask]} then {
+		  echo "FAILED"
+			echo " "
+			set RESULT -1
+		}
+  return $RESULT
+}
+
+
+
 # Validation function for the snippet
-# variable input parameter are the 3 regsiter values
-# constant input prameter are the snippet related parameter
-
-
-
+# constant input parameter are the snippet related parameter
 proc validate {} {
-
-  # parameter, which varies from test to test
-  global Val_asic_ctrl_io_config
-  global Val_asic_ctrl_io_config2
-  global Val_asic_ctrl_clock_enable
 
   # constant parameter, which are constant overall test cases
   global snippet_exec_address
-	
-	global ADR_asic_ctrl_io_config
-	global ADR_asic_ctrl_io_config2
-	global ADR_asic_ctrl_clock_enable
-	
+
+    # set addresses to ASIC_CTRL registers
+	  set ADR_asic_ctrl_netx_version    0xf4080148
+
+	  set ADR_firewall_cfg_netx_ram0    0xf40801b0
+	  set ADR_firewall_cfg_netx_ram1    0xf40801b4
+	  set ADR_firewall_cfg_netx_ram2    0xf40801b8
+	  set ADR_firewall_cfg_netx_ramhs0    0xf40801bc
+	  set ADR_firewall_cfg_netx_ramhs1    0xf40801c0
+	  set ADR_firewall_cfg_netx_rameth    0xf40801c4
+	  set ADR_firewall_cfg_netx_extmem    0xf40801c8
+	  set ADR_firewall_cfg_netx_hifmem    0xf40801cc
+	  set ADR_firewall_cfg_netx_xc_config    0xf40801d0
+	  set ADR_firewall_cfg_netx_reg     0xf40801d4
 
   set RESULT 0
 
-	  mww  0x04000000  $Val_asic_ctrl_io_config
-	  mww  0x04000004  $Val_asic_ctrl_io_config2
-	  mww  0x04000008  $Val_asic_ctrl_clock_enable
-	  
-	  # Start snippet
-	  echo "Resume $snippet_exec_address"
-	  resume $snippet_exec_address
-	  wait_halt
-	  
-	  
-	  # Read back modified register values
-	  set rd_value_asic_ctrl_io_config [ format "0x%08x" [read_data32 $ADR_asic_ctrl_io_config]]
-	  set rd_value_asic_ctrl_io_config2 [ format "0x%08x" [read_data32 $ADR_asic_ctrl_io_config2]]
-	  set rd_value_asic_ctrl_clock_enable [ format "0x%08x" [read_data32 $ADR_asic_ctrl_clock_enable]]
-		
-	  
-	  echo ""
-	  echo "########"
-	  echo "Check the modified asic_ctrl registers"
-		echo "Register io_config (addr: $ADR_asic_ctrl_io_config)"
-		echo "  expected: $Val_asic_ctrl_io_config"
-		echo "  actual:   $rd_value_asic_ctrl_io_config"
-		
-	  if {$Val_asic_ctrl_io_config != $rd_value_asic_ctrl_io_config} then {
-		  echo "FAILED"
-			echo " "
-			set RESULT -1
-		}
+    # Start snippet
+    echo "Resume $snippet_exec_address"
+    resume $snippet_exec_address
+    wait_halt
 
-		echo "Register io_config2  (addr: $ADR_asic_ctrl_io_config2)"
-		echo "  expected: $Val_asic_ctrl_io_config2"
-		echo "  actual:   $rd_value_asic_ctrl_io_config2"
 
-	  if {$Val_asic_ctrl_io_config2 != $rd_value_asic_ctrl_io_config2} then {
-		  echo "FAILED"
-			echo " "
-			set RESULT -1
-		}
+     if {[validate_32bit "asic_ctrl_netx_version" $ADR_asic_ctrl_netx_version 0x84524c0b 0xFFffFFff] != 0} then {
+      echo "FAILED"
+      echo " "
+      set RESULT -1
+    }
+    
+     # Read back modified register values    
+     if {[validate_32bit "firewall_cfg_netx_ram0" $ADR_firewall_cfg_netx_ram0 0xFF 0xFF] != 0} then {
+      echo "FAILED"
+      echo " "
+      set RESULT -1
+    }
+    
+     if {[validate_32bit "firewall_cfg_netx_ram1" $ADR_firewall_cfg_netx_ram1 0xFF 0xFF] != 0} then {
+      echo "FAILED"
+      echo " "
+      set RESULT -1
+    }
+    
+     if {[validate_32bit "firewall_cfg_netx_ram2" $ADR_firewall_cfg_netx_ram2 0xFF 0xFF] != 0} then {
+      echo "FAILED"
+      echo " "
+      set RESULT -1
+    }
 
-		echo "Register clock_enable  (addr: $ADR_asic_ctrl_clock_enable)"
-		echo "  expected: $Val_asic_ctrl_clock_enable"
-		echo "  actual:   $rd_value_asic_ctrl_clock_enable"
+     if {[validate_32bit "firewall_cfg_netx_ramhs0" $ADR_firewall_cfg_netx_ramhs0 0xFF 0xFF] != 0} then {
+      echo "FAILED"
+      echo " "
+      set RESULT -1
+    }
 
-	  if {$Val_asic_ctrl_clock_enable != [expr $rd_value_asic_ctrl_clock_enable & $Val_asic_ctrl_clock_enable]} then {
-		  echo "FAILED"
-			echo " "
-			set RESULT -1
-		}
+     if {[validate_32bit "firewall_cfg_netx_ramhs1" $ADR_firewall_cfg_netx_ramhs1 0xFF 0xFF] != 0} then {
+      echo "FAILED"
+      echo " "
+      set RESULT -1
+    }
+
+     if {[validate_32bit "firewall_cfg_netx_rameth" $ADR_firewall_cfg_netx_rameth 0xFF 0xFF] != 0} then {
+      echo "FAILED"
+      echo " "
+      set RESULT -1
+    }
+
+     if {[validate_32bit "firewall_cfg_netx_extmem" $ADR_firewall_cfg_netx_extmem 0xFF 0xFF] != 0} then {
+      echo "FAILED"
+      echo " "
+      set RESULT -1
+    }
+
+     if {[validate_32bit "firewall_cfg_netx_hifmem" $ADR_firewall_cfg_netx_hifmem 0xFF 0xFF] != 0} then {
+      echo "FAILED"
+      echo " "
+      set RESULT -1
+    }
+
+     if {[validate_32bit "firewall_cfg_netx_xc_config" $ADR_firewall_cfg_netx_xc_config 0xFF 0xFF] != 0} then {
+      echo "FAILED"
+      echo " "
+      set RESULT -1
+    }
+
+     if {[validate_32bit "firewall_cfg_netx_reg" $ADR_firewall_cfg_netx_reg 0xFF 0xFF] != 0} then {
+      echo "FAILED"
+      echo " "
+      set RESULT -1
+    }
+
+
 		
 	  echo "########"
 
@@ -200,20 +254,12 @@ proc probe {} {
 	  # Enable the tcm
       netx4000_enable_tcm
 	  
-    # set addresses to ASIC_CTRL registers
-	    global ADR_asic_ctrl_io_config   
-	    global ADR_asic_ctrl_io_config2  
-	    global ADR_asic_ctrl_clock_enable
-		  
-	    set ADR_asic_ctrl_io_config    0xf4080100
-	    set ADR_asic_ctrl_io_config2   0xf4080108
-	    set ADR_asic_ctrl_clock_enable 0xf4080138
 
 	  # Set snippet file name, start adress and execution adress
-      set filename_snippet_apply_asic_ctrl_netx4000_bin ../../targets/netx4000_cr7_llram/apply_asic_ctrl_netx4000.bin
-	    set snippet_load_address 0x04010000
-			global snippet_exec_address
-      set snippet_exec_address 0x04010000
+      set filename_snippet_netx4000_open_firewall_bin ../../targets/netx4000_cr7_llram/open_firewall_netx4000.bin
+	  set snippet_load_address 0x04001000
+	  global snippet_exec_address
+      set snippet_exec_address 0x04001000
 
     # configure
 		# -  ARM32bit mode
@@ -226,28 +272,16 @@ proc probe {} {
       reg lr_svc 0x04100000
 
     # Download the snippet.
-      load_image $filename_snippet_apply_asic_ctrl_netx4000_bin $snippet_load_address bin
+      load_image $filename_snippet_netx4000_open_firewall_bin $snippet_load_address bin
 		# dump memory area with the image	
-			mdb 0x04010000 0x50
-	  
-	  # Set the handover register r0
-	    reg r0 0x04000000 
-	  
+			mdb $snippet_load_address 0x120
+
 		# be optimistic
 		set RESULT "0"
 		
 		# test case 1
-		
-	  # prepare handover values into snippet
-		  global Val_asic_ctrl_io_config
-      global Val_asic_ctrl_io_config2
-      global Val_asic_ctrl_clock_enable
 
-	    set Val_asic_ctrl_io_config       0x00000001
-	    set Val_asic_ctrl_io_config2      0x00000002
-	    set Val_asic_ctrl_clock_enable    0x00300000
-			
-		  if {[validate] != "0"} {set RESULT "-1"}
+	  if {[validate] != "0"} {set RESULT "-1"}
 
 		
 	  if {$RESULT == "0"} then {
