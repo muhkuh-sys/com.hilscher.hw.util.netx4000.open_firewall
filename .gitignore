@@ -12,3 +12,5 @@
 
 # Ignore all compiled python modules.
 *.pyc
+venv
+.idea
