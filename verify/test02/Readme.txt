@@ -1,4 +1,4 @@
-This is the test description for testing the apply_asic_ctrl snippet
+This is the test description for testing the open_firewall snippet
 
 Preparations:
 - create the test binary file by running the main SConstruct
